@@ -39,6 +39,6 @@ public class NoteService {
     }
     @Transactional
     public List<Note> getNotesByUser(Users user){
-        return repository.getNotesByUser(user);
+        return repository.findByUser(user.getId());
     }
 }

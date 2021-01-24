@@ -30,8 +30,8 @@ public class NoteController{
 
     @GetMapping("notes")
     @ResponseStatus(HttpStatus.OK)
-    public List<Note> getNotes(@AuthenticationPrincipal Users users){
-      return service.getNotesByUser(users);
+    public List<Note> getNotes(){
+      return service.getNotesByUser(getAuthenticated());
     }
 
     @PostMapping("note")

@@ -28,6 +28,13 @@ public class GlobalRestControllerAdvice {
         response.setStatus((HttpStatus.NOT_FOUND.value()));
         return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
     }
+    @ExceptionHandler(value = {NullPointerException.class})
+    public ResponseEntity<CustomExceptionResponse> handleNullPointExceptions(NullPointerException e){
+        CustomExceptionResponse response = new CustomExceptionResponse( "NULL_POINTER",e.getLocalizedMessage());
+        response.setTime(LocalDateTime.now());
+        response.setStatus((HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @ExceptionHandler(value = RuntimeException.class)
     public ResponseEntity<CustomExceptionResponse> handleGenericExceptions(Exception e){
