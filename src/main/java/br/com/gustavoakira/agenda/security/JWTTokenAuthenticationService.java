@@ -32,32 +32,52 @@ public class JWTTokenAuthenticationService {
     private static final String HEADER_STRING = "Authorization";
 
     public void addAuthentication(HttpServletResponse response, String username) throws IOException {
+        String token = createToken(username);
+        response.addHeader(HEADER_STRING,token);
+        liberationCors(response);
+        response.getWriter().write("{\"Authorization\": \""+token+"\"}");
+    }
+
+    public String createToken(String username) {
         String Jwt = Jwts.builder()
                 .setSubject(username)
                 .setExpiration(new Date(System.currentTimeMillis() +EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS512, SECRET)
                 .compact();
-        String token = TOKEN_PREFIX + "" +Jwt;
-        response.addHeader(HEADER_STRING,token);
-        response.getWriter().write("{\"Authorization\": \""+token+"\"}");
+        String token = TOKEN_PREFIX + " " +Jwt;
+        return token;
     }
-    public Authentication getAuthentication(HttpServletRequest request){
-        String token = request.getHeader(HEADER_STRING);
 
+    public Authentication getAuthentication(HttpServletRequest request,HttpServletResponse response){
+        String token = request.getHeader(HEADER_STRING);
+        liberationCors(response);
         if(token != null){
             String user = Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token.replace(TOKEN_PREFIX,"")).getBody().getSubject();
-            if(user != null){
+            if(user != null) {
                 Users loggedUser = ApplicationContextLoad.getApplicationContext().getBean(UsersRepository.class).findUserByEmail(user);
-                if( loggedUser != null){
-                    return  new UsernamePasswordAuthenticationToken(loggedUser.getEmail(),loggedUser.getPassword(),loggedUser.getAuthorities());
-                }else {
-                    return null;
+                if (loggedUser != null) {
+                    return new UsernamePasswordAuthenticationToken(loggedUser.getEmail(), loggedUser.getPassword(), loggedUser.getAuthorities());
                 }
-            }else{
-                return null;
             }
-        }else{
-            return null;
+        }
+        return null;
+    }
+
+    private void liberationCors(HttpServletResponse response) {
+        if(response.getHeader("Access-Control-Allow-Origin") == null){
+            response.addHeader("Access-Control-Allow-Origin","*");
+        }
+
+        if(response.getHeader("Access-Control-Allow-Headers") == null){
+            response.addHeader("Access-Control-Allow-Headers","*");
+        }
+
+        if(response.getHeader("Access-Control-Request-Headers") == null){
+            response.addHeader("Access-Control-Request-Headers","*");
+        }
+
+        if(response.getHeader("Access-Control-Allow-Methods") == null){
+            response.addHeader("Access-Control-Allow-Methods","*");
         }
     }
 }
